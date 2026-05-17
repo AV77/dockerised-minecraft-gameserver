@@ -1,7 +1,7 @@
 FROM eclipse-temurin:25-jre-alpine
 
-# Install dependencies: curl/jq for API fetching, su-exec for privilege dropping, bash for scripting
-RUN apk add --no-cache su-exec bash
+# Install dependencies: curl/jq for API fetching, su-exec for privilege dropping, bash for scripting and tzdata for timezone support
+RUN apk add --no-cache su-exec bash tzdata
 
 # Create an unprivileged user and group (UID/GID 1000)
 RUN <<-'EOF'

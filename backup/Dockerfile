@@ -5,7 +5,7 @@ FROM alpine:latest
 RUN <<-'EOF'
 	set -e
 	# Install dependencies
-	apk add --no-cache restic build-base git
+	apk add --no-cache restic tzdata build-base git
 
 	# Download and compile mcrcon
 	git clone https://github.com/Tiiffi/mcrcon.git /tmp/mcrcon
