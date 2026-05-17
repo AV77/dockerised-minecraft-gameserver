@@ -4,7 +4,8 @@ FROM eclipse-temurin:25-jre-alpine
 RUN apk add --no-cache su-exec bash
 
 # Create an unprivileged user and group (UID/GID 1000)
-RUN set -e <<-'EOF'
+RUN <<-'EOF'
+  set -e
   addgroup -g 1000 minecraft
   adduser -D -u 1000 -G minecraft -h /data minecraft
 EOF

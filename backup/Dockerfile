@@ -2,7 +2,8 @@ FROM alpine:latest
 
 # --- Build-Time Setup ---
 # Run installation scripts in a single layer
-RUN set -e <<-'EOF'
+RUN <<-'EOF'
+	set -e
 	# Install dependencies
 	apk add --no-cache restic build-base git
 
@@ -41,7 +42,8 @@ COPY --chmod=755 <<-'EOF' /entrypoint.sh
 EOF
 
 # Set up cron jobs (Backup hour, Prune daily at 3 AM)
-RUN set -e <<-'EOF'
+RUN <<-'EOF'
+	set -e
 	echo "0 * * * * /usr/local/bin/run_backup.sh" > /etc/crontabs/root
 	echo "0 3 * * * restic forget --keep-last 48 --keep-daily 14 --keep-weekly 9999 --prune --tag cron_backup" >> /etc/crontabs/root
 EOF
