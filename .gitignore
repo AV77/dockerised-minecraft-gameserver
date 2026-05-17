@@ -1,0 +1,4 @@
+.env
+
+minecraft_data/
+restic_backups/

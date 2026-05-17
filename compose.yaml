@@ -1,0 +1,44 @@
+services:
+  papermc:
+    build: ./server
+    container_name: papermc_server
+    restart: unless-stopped
+    ports:
+      - "25565:25565/tcp"
+      - "25565:25565/udp"
+    expose:
+      # Opens RCON exclusively to the internal Docker network
+      - "25575"
+    environment:
+      - MC_VERSION=26.1 
+      - EULA=true
+      - JAVA_OPTS=-XX:+AlwaysPreTouch -XX:+DisableExplicitGC -XX:+ParallelRefProcEnabled -XX:+PerfDisableSharedMem -XX:+UnlockExperimentalVMOptions -XX:+UseG1GC -XX:G1HeapRegionSize=8M -XX:G1HeapWastePercent=5 -XX:G1MaxNewSizePercent=40 -XX:G1MixedGCCountTarget=4 -XX:G1MixedGCLiveThresholdPercent=90 -XX:G1NewSizePercent=30 -XX:G1RSetUpdatingPauseTimePercent=5 -XX:G1ReservePercent=20 -XX:InitiatingHeapOccupancyPercent=15 -XX:MaxGCPauseMillis=200 -XX:MaxTenuringThreshold=1 -XX:SurvivorRatio=32
+    volumes:
+      - ./minecraft_data:/data
+    security_opt:
+      - no-new-privileges:true
+    # mem_limit: 5G
+
+  backup:
+    build: ./backup
+    container_name: papermc_backup
+    restart: unless-stopped
+    depends_on:
+      - papermc
+    environment:
+      - RESTIC_PASSWORD=${RESTIC_PASSWORD}
+      - RESTIC_REPOSITORY=/backups
+      - RCON_PASSWORD=${RCON_PASSWORD}
+    volumes:
+      # Mounts the Minecraft world as Read-Only for absolute safety
+      - ./minecraft_data:/data:ro
+      - ./restic_backups:/backups
+
+  playit:
+    image: ghcr.io/playit-cloud/playit-agent:0.17
+    container_name: papermc_playit
+    restart: unless-stopped
+    depends_on:
+      - papermc
+    environment:
+    - SECRET_KEY=${PLAYIT_SECRET_KEY}
