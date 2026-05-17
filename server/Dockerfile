@@ -1,7 +1,7 @@
 FROM eclipse-temurin:25-jre-alpine
 
 # Install dependencies: curl/jq for API fetching, su-exec for privilege dropping, bash for scripting
-RUN apk add --no-cache su-exec bash
+RUN apk add --no-cache su-exec bash curl jq
 
 # Create an unprivileged user and group (UID/GID 1000)
 RUN set -e <<-'EOF'
@@ -18,6 +18,15 @@ ENV MC_VERSION="26.1.1" \
 COPY --chmod=755 <<-'EOF' /start.sh
 	#!/bin/bash
 	if [ "$EULA" = "true" ] || [ "$EULA" = "TRUE" ]; then echo "eula=true" > /data/eula.txt; else echo "ERROR: You must accept the EULA by setting EULA=true in docker-compose.yml"; exit 1; fi
+
+  # TODO: Update to use the new API
+	if [ ! -f /data/server.jar ]; then
+	  echo "Fetching latest PaperMC build for ${MC_VERSION}..."
+	  LATEST_BUILD=$(curl -s https://api.papermc.io/v2/projects/paper/versions/${MC_VERSION}/builds | jq -r ".builds[-1].build")
+	  JAR_NAME=$(curl -s https://api.papermc.io/v2/projects/paper/versions/${MC_VERSION}/builds/${LATEST_BUILD} | jq -r ".downloads.application.name")
+	  echo "Downloading build ${LATEST_BUILD}..."
+	  curl -o /data/server.jar "https://api.papermc.io/v2/projects/paper/versions/${MC_VERSION}/builds/${LATEST_BUILD}/downloads/${JAR_NAME}"
+	fi
 	
 	echo "Adjusting volume permissions..."
 	chown -R minecraft:minecraft /data
